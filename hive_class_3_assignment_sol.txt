@@ -56,6 +56,34 @@ cat: Unable to write to output stream.
 
 Create a internal hive table "sales_order_csv" which will store csv data sales_order_csv .. make sure to skip header row while creating table
 sol:
+create table sales_order_data_csv_v1
+(
+ORDERNUMBER int,
+QUANTITYORDERED int,
+PRICEEACH float,
+ORDERLINENUMBER int,
+SALES float,
+STATUS string,
+QTR_ID int,
+MONTH_ID int,
+YEAR_ID int,
+PRODUCTLINE string,
+MSRP int,
+PRODUCTCODE string,
+PHONE string,
+CITY string,
+STATE string,
+POSTALCODE string,
+COUNTRY string,
+TERRITORY string,
+CONTACTLASTNAME string,
+CONTACTFIRSTNAME string,
+DEALSIZE string
+)
+row format delimited
+fields terminated by ','
+tblproperties("skip.header.line.count"="1")
+; 
 
 hive> describe sales_order_data_csv_v1;
 OK
@@ -81,5 +109,439 @@ contactlastname         string
 contactfirstname        string
 dealsize                string
 
+Load data from hdfs path into "sales_order_csv" 
+Sol
+load data local inpath 'file:///Downloads/hivepractical/sales_data_csv.csv' into table sales_order_data_csv_v1;
+hive> select * from sales_order_data_csv_v1 limit 10;
+OK
+10107   30      95.7    2       2871.0  Shipped 1       2       2003    Motorcycles     95      S10_1678        2125557818      NYC     NY      10022   USA     NA      Yu      Kwai    Small
+10121   34      81.35   5       2765.9  Shipped 2       5       2003    Motorcycles     95      S10_1678        26.47.1555      Reims           51100   France  EMEA    Henriot Paul    Small
+10134   41      94.74   2       3884.34 Shipped 3       7       2003    Motorcycles     95      S10_1678        +33 1 46 62 7555        Paris           75508   France  EMEA    Da Cunha    Daniel   Medium
+10145   45      83.26   6       3746.7  Shipped 3       8       2003    Motorcycles     95      S10_1678        6265557265      Pasadena        CA      90003   USA     NA      Young   JulieMedium
+10159   49      100.0   14      5205.27 Shipped 4       10      2003    Motorcycles     95      S10_1678        6505551386      San Francisco   CA              USA     NA      Brown   JulieMedium
+10168   36      96.66   1       3479.76 Shipped 4       10      2003    Motorcycles     95      S10_1678        6505556809      Burlingame      CA      94217   USA     NA      Hirano  JuriMedium
+10180   29      86.13   9       2497.77 Shipped 4       11      2003    Motorcycles     95      S10_1678        20.16.1555      Lille           59000   France  EMEA    Rance   Martine Small
+10188   48      100.0   1       5512.32 Shipped 4       11      2003    Motorcycles     95      S10_1678        +47 2267 3215   Bergen          N 5804  Norway  EMEA    Oeztan  Veysel  Medium
+10201   22      98.57   2       2168.54 Shipped 4       12      2003    Motorcycles     95      S10_1678        6505555787      San Francisco   CA              USA     NA      Murphy  JulieSmall
+10211   41      100.0   14      4708.44 Shipped 1       1       2004    Motorcycles     95      S10_1678        (1) 47.55.6555  Paris           75016   France  EMEA    Perrier Dominique   Medium
+Time taken: 0.488 seconds, Fetched: 10 row(s)
 
 
+
+
+ Create an internal hive table which will store data in ORC format "sales_order_orc"
+ create table sales_order_data_orc
+(
+ORDERNUMBER int,
+QUANTITYORDERED int,
+PRICEEACH float,
+ORDERLINENUMBER int,
+SALES float,
+STATUS string,
+QTR_ID int,
+MONTH_ID int,
+YEAR_ID int,
+PRODUCTLINE string,
+MSRP int,
+PRODUCTCODE string,
+PHONE string,
+CITY string,
+STATE string,
+POSTALCODE string,
+COUNTRY string,
+TERRITORY string,
+CONTACTLASTNAME string,
+CONTACTFIRSTNAME string,
+DEALSIZE string
+)
+stored as orc;
+
+Load data from "sales_order_csv" into "sales_order_orc"
+
+from sales_order_data_csv_v1 insert overwrite table sales_order_data_orc select *;
+
+hive> select * from sales_order_data_orc limit 5;
+OK
+10107   30      95.7    2       2871.0  Shipped 1       2       2003    Motorcycles     95      S10_1678        2125557818      NYC     NY      10022   USA     NA      Yu      Kwai    Small
+10121   34      81.35   5       2765.9  Shipped 2       5       2003    Motorcycles     95      S10_1678        26.47.1555      Reims           51100   France  EMEA    Henriot Paul    Small
+10134   41      94.74   2       3884.34 Shipped 3       7       2003    Motorcycles     95      S10_1678        +33 1 46 62 7555        Paris           75508   France  EMEA    Da Cunha    Daniel   Medium
+10145   45      83.26   6       3746.7  Shipped 3       8       2003    Motorcycles     95      S10_1678        6265557265      Pasadena        CA      90003   USA     NA      Young   JulieMedium
+10159   49      100.0   14      5205.27 Shipped 4       10      2003    Motorcycles     95      S10_1678        6505551386      San Francisco   CA              USA     NA      Brown   JulieMedium
+Time taken: 0.163 seconds, Fetched: 5 row(s)
+
+
+
+
+Perform below menioned queries on "sales_order_orc" table :
+
+a. Calculatye total sales per year
+hive> set hive.cli.print.header=true;
+hive> select sum(sales) as total_sales,year_id from sales_order_data_orc group by year_id;
+Query ID = cloudera_20220917205656_6c2a74a5-b06e-4039-8b5a-7a849f418a60
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1663467155882_0002, Tracking URL = http://quickstart.cloudera:8088/proxy/application_1663467155882_0002/
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -kill job_1663467155882_0002
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-09-17 20:56:18,646 Stage-1 map = 0%,  reduce = 0%
+2022-09-17 20:56:27,488 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.63 sec
+2022-09-17 20:56:36,884 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.17 sec
+MapReduce Total cumulative CPU time: 6 seconds 170 msec
+Ended Job = job_1663467155882_0002
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.17 sec   HDFS Read: 37103 HDFS Write: 70 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 170 msec
+OK
+total_sales     year_id
+3516979.547241211       2003
+4724162.593383789       2004
+1791486.7086791992      2005
+Time taken: 27.656 seconds, Fetched: 3 row(s)
+
+
+
+b. Find a product for which maximum orders were placed
+hive> select max(quantityordered) as max_orders,productline from sales_order_data_orc group by productline limit 1;
+Query ID = cloudera_20220917211212_09d27f51-981f-4305-b60b-95bf25ea8ef5
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1663467155882_0006, Tracking URL = http://quickstart.cloudera:8088/proxy/application_1663467155882_0006/
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -kill job_1663467155882_0006
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-09-17 21:12:42,422 Stage-1 map = 0%,  reduce = 0%
+2022-09-17 21:12:51,007 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.8 sec
+2022-09-17 21:12:59,472 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.28 sec
+MapReduce Total cumulative CPU time: 6 seconds 280 msec
+Ended Job = job_1663467155882_0006
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.28 sec   HDFS Read: 29632 HDFS Write: 16 SUCCESS
+Total MapReduce CPU Time Spent: 6 seconds 280 msec
+OK
+max_orders      productline
+97      Classic Cars
+Time taken: 24.494 seconds, Fetched: 1 row(s)
+hive>
+
+
+
+
+c. Calculate the total sales for each quarter
+hive> select sum(sales) as total_sales,qtr_id from sales_order_data_orc group by qtr_id;
+Query ID = cloudera_20220917211717_654e7545-981f-4fc6-81c6-ceabfa88c7fe
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1663467155882_0007, Tracking URL = http://quickstart.cloudera:8088/proxy/application_1663467155882_0007/
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -kill job_1663467155882_0007
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-09-17 21:17:12,242 Stage-1 map = 0%,  reduce = 0%
+2022-09-17 21:17:19,718 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 3.06 sec
+2022-09-17 21:17:28,105 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 4.55 sec
+MapReduce Total cumulative CPU time: 4 seconds 550 msec
+Ended Job = job_1663467155882_0007
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 4.55 sec   HDFS Read: 37282 HDFS Write: 81 SUCCESS
+Total MapReduce CPU Time Spent: 4 seconds 550 msec
+OK
+total_sales     qtr_id
+2350817.726501465       1
+2048120.3029174805      2
+1758910.808959961       3
+3874780.010925293       4
+
+
+d. In which quarter sales was minimum
+hive> select sum(sales) as total_sales,qtr_id from sales_order_data_orc group by qtr_id order by total_sales limit 1;
+Query ID = cloudera_20220917215252_69a6dd6c-8159-41e9-b850-dd01b9a3ea87
+Total jobs = 2
+Launching Job 1 out of 2
+Number of reduce tasks not specified. Estimated from input data size: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1663467155882_0017, Tracking URL = http://quickstart.cloudera:8088/proxy/application_1663467155882_0017/
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -kill job_1663467155882_0017
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2022-09-17 21:52:38,780 Stage-1 map = 0%,  reduce = 0%
+2022-09-17 21:52:48,410 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 4.99 sec
+2022-09-17 21:52:58,834 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 6.39 sec
+MapReduce Total cumulative CPU time: 6 seconds 390 msec
+Ended Job = job_1663467155882_0017
+Launching Job 2 out of 2
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1663467155882_0018, Tracking URL = http://quickstart.cloudera:8088/proxy/application_1663467155882_0018/
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -kill job_1663467155882_0018
+Hadoop job information for Stage-2: number of mappers: 1; number of reducers: 1
+2022-09-17 21:53:06,575 Stage-2 map = 0%,  reduce = 0%
+2022-09-17 21:53:13,008 Stage-2 map = 100%,  reduce = 0%, Cumulative CPU 0.84 sec
+2022-09-17 21:53:20,383 Stage-2 map = 100%,  reduce = 100%, Cumulative CPU 2.31 sec
+MapReduce Total cumulative CPU time: 2 seconds 310 msec
+Ended Job = job_1663467155882_0018
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 6.39 sec   HDFS Read: 36372 HDFS Write: 200 SUCCESS
+Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 2.31 sec   HDFS Read: 5086 HDFS Write: 20 SUCCESS
+Total MapReduce CPU Time Spent: 8 seconds 700 msec
+OK
+total_sales     qtr_id
+1758910.808959961       3
+Time taken: 50.501 seconds, Fetched: 1 row(s)
+
+
+In which country sales was maximum and in which country sales was minimum
+ select country,max(sales) as max_sales from sales_order_data_orc group by country order by max_sales  limit 1;
+ MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.28 sec   HDFS Read: 36875 HDFS Write: 640 SUCCESS
+Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 2.12 sec   HDFS Read: 5844 HDFS Write: 12 SUCCESS
+Total MapReduce CPU Time Spent: 9 seconds 400 msec
+OK
+country max_sales
+USA     14082.8
+Time taken: 47.364 seconds, Fetched: 1 row(s)
+
+select country,min(sales) as min_sales from sales_order_data_orc group by country order by min_sales limit 1;
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 2.36 sec   HDFS Read: 36875 HDFS Write: 640 SUCCESS
+Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 2.42 sec   HDFS Read: 5695 HDFS Write: 14 SUCCESS
+Total MapReduce CPU Time Spent: 4 seconds 780 msec
+OK
+country min_sales
+France  482.13
+Time taken: 39.276 seconds, Fetched: 1 row(s)
+
+
+
+Calculate quartelry sales for each city
+select city,sum(sales) as qtrly_sales,qtr_id from sales_order_data_orc group by city,qtr_id order by qtr_id;
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.34 sec   HDFS Read: 38384 HDFS Write: 6528 SUCCESS
+Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 2.25 sec   HDFS Read: 11764 HDFS Write: 5283 SUCCESS
+Total MapReduce CPU Time Spent: 9 seconds 590 msec
+OK
+city    qtrly_sales     qtr_id
+Lille   20178.1298828125        1
+Minato-ku       38191.38977050781       1
+Osaka   50490.64013671875       1
+Bergamo 56181.320068359375      1
+San Rafael      267315.2586669922       1
+Dublin  38784.470458984375      1
+NYC     32647.809814453125      1
+Nantes  59617.39978027344       1
+Pasadena        44273.359436035156      1
+North Sydney    65012.41955566406       1
+Cowes   26906.68017578125       1
+Newark  8722.1201171875 1
+South Brisbane  21730.029907226562      1
+Reims   52029.07043457031       1
+Singapore       28395.18994140625       1
+Toulouse        15139.1201171875        1
+New Bedford     48578.95935058594       1
+Nashua  12133.25        1
+Graz    8775.159912109375       1
+London  8477.219970703125       1
+Los Angeles     23889.320068359375      1
+Glendale        3987.199951171875       1
+Charleroi       16628.16015625  1
+Helsinki        26422.819458007812      1
+Lule    9748.999755859375       1
+Gensve  50432.549560546875      1
+Cambridge       21782.699951171875      1
+Paris   71494.17944335938       1
+Lyon    101339.13977050781      1
+Burlingame      13529.570190429688      1
+Madrid  357668.4899291992       1
+Burbank 37850.07958984375       1
+Makati City     55245.02014160156       1
+Kobenhavn       58871.110107421875      1
+Bruxelles       18800.089721679688      1
+San Diego       87489.23010253906       1
+Brisbane        16118.479858398438      1
+Frankfurt       48698.82922363281       1
+Stavern 54701.999755859375      1
+Oulu    49055.40026855469       1
+Manchester      51017.919860839844      1
+Philadelphia    27398.820434570312      1
+Brickhaven      31474.7802734375        1
+Versailles      5759.419921875  1
+San Francisco   72899.19995117188       1
+Espoo   51373.49072265625       1
+Marseille       2317.43994140625        1
+Melbourne       49637.57067871094       1
+Boras   31606.72021484375       1
+Glendale        20350.949768066406      2
+Glen Waverly    14378.089965820312      2
+Espoo   31018.230102539062      2
+Chatswood       43971.429931640625      2
+Charleroi       1711.260009765625       2
+Paris   80215.4203491211        2
+Cambridge       14380.920043945312      2
+Bruxelles       8411.949829101562       2
+Oulu    17813.40008544922       2
+Bridgewater     75778.99060058594       2
+Brickhaven      7277.35009765625        2
+Boston  74994.240234375 2
+Osaka   17114.43017578125       2
+Barcelona       4219.2001953125 2
+Allentown       6166.7998046875 2
+Newark  74506.06909179688       2
+Singapore       92033.77014160156       2
+New Haven       36973.309814453125      2
+Nantes  60344.990173339844      2
+NYC     165100.33947753906      2
+San Rafael      7261.75 2
+Montreal        58257.50012207031       2
+Minato-ku       26482.700256347656      2
+San Jose        160010.27026367188      2
+Melbourne       60135.84033203125       2
+Marseille       52481.840087890625      2
+Strasbourg      80438.47985839844       2
+Madrid  339588.0513305664       2
+Salzburg        98104.24005126953       2
+London  32376.29052734375       2
+Reims   18971.959716796875      2
+Liverpool       91211.0595703125        2
+Las Vegas       33847.61975097656       2
+Reggio Emilia   41509.94006347656       2
+Kobenhavn       62091.880615234375      2
+Tsawassen       31302.500244140625      2
+Philadelphia    7287.240234375  2
+Gensve  67281.00903320312       3
+Oslo    34145.47021484375       3
+Boston  15344.640014648438      3
+Brickhaven      114974.53967285156      3
+Brisbane        34100.030029296875      3
+Bruxelles       47760.479736328125      3
+Reggio Emilia   56421.650390625 3
+Madrid  69714.09008789062       3
+Glendale        7600.1201171875 3
+Oulu    37501.580322265625      3
+Salzburg        6693.2802734375 3
+Burlingame      42031.83020019531       3
+Glen Waverly    12334.819580078125      3
+Cambridge       48828.71942138672       3
+Tsawassen       43332.349609375 3
+Charleroi       1637.199951171875       3
+Reims   15146.31982421875       3
+Pasadena        55776.119873046875      3
+Toulouse        17251.08056640625       3
+New Bedford     45738.38952636719       3
+Nantes  61310.880126953125      3
+Paris   27798.480102539062      3
+Allentown       71930.61041259766       3
+San Rafael      216297.40063476562      3
+NYC     63027.92004394531       3
+South Brisbane  10640.290161132812      3
+North Sydney    47191.76013183594       3
+Munich  34993.92004394531       3
+Helsinki        42744.0595703125        3
+Chatswood       69694.40002441406       3
+Singapore       90250.07995605469       3
+Dublin  18971.959838867188      3
+Bergen  16363.099975585938      3
+Espoo   31569.430053710938      3
+Las Vegas       34453.84973144531       3
+Boras   53941.68981933594       3
+Torino  94117.25988769531       3
+White Plains    85555.98962402344       4
+Versailles      59074.90026855469       4
+Vancouver       75238.91955566406       4
+Toulouse        38098.240234375 4
+Stavern 61897.19006347656       4
+South Brisbane  27098.800048828125      4
+Singapore       77809.37023925781       4
+Sevilla 54723.621154785156      4
+San Rafael      163983.64880371094      4
+San Francisco   151459.4805908203       4
+Salzburg        45001.10986328125       4
+Reims   48895.59014892578       4
+Reggio Emilia   44669.740478515625      4
+Philadelphia    116503.07043457031      4
+Pasadena        4512.47998046875        4
+Paris   89436.60034179688       4
+Oslo    45078.759765625 4
+North Sydney    41791.949462890625      4
+New Haven       42498.760498046875      4
+New Bedford     113557.509765625        4
+Nashua  119552.04949951172      4
+Nantes  23031.589599609375      4
+NYC     300011.6999511719       4
+Montreal        15947.290405273438      4
+Minato-ku       55888.65026855469       4
+Melbourne       91221.99914550781       4
+Marseille       20136.859985351562      4
+Manchester      106789.88977050781      4
+Makati City     38770.71032714844       4
+Madrid  315580.80963134766      4
+Lyon    41535.11022949219       4
+Lule    66005.8798828125        4
+Los Angeles     24159.14013671875       4
+London  83970.029296875 4
+Liverpool       26797.210083007812      4
+Lille   48874.28088378906       4
+Las Vegas       14449.609741210938      4
+Koln    100306.58020019531      4
+Kobenhavn       24078.610107421875      4
+Helsinki        42083.499755859375      4
+Graz    43488.740234375 4
+Glendale        34485.49987792969       4
+Glen Waverly    37878.54992675781       4
+Frankfurt       36472.76025390625       4
+Cowes   51334.15966796875       4
+Chatswood       37905.14990234375       4
+Charleroi       13463.480224609375      4
+Cambridge       54251.659912109375      4
+Burlingame      65221.67004394531       4
+Burbank 8234.559936523438       4
+Bridgewater     26115.800537109375      4
+Brickhaven      11528.52978515625       4
+Boston  63730.7802734375        4
+Boras   48710.92053222656       4
+Bergen  95277.17993164062       4
+Bergamo 81774.40008544922       4
+Barcelona       74192.66003417969       4
+Allentown       44040.729736328125      4
+Aaarhus 100595.5498046875       4
+Time taken: 46.582 seconds, Fetched: 182 row(s)
+
+ 
+ 
+ 
+h.Find a month for each year in which maximum number of quantities were sold
+
+hive> select month_id,year_id,max(quantityordered) as max_quantities from sales_order_data_orc group by year_id order by max_quantities desc limit 1;
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 5.32 sec   HDFS Read: 29775 HDFS Write: 734 SUCCESS
+Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 2.2 sec   HDFS Read: 5704 HDFS Write: 10 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 520 msec
+OK
+month_id        year_id max_quantities
+4       2005    97
+Time taken: 43.529 seconds, Fetched: 1 row(s)
