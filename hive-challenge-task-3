@@ -43,8 +43,12 @@ CREATE TABLE emp_details (id INT,first_name string,last_name string,email string
 stored as textfile;
 
 
- 
 
+Suppose, I have a lot of small CSV files present in the input directory in HDFS and I want to create a single Hive table corresponding to these files. The data in these files are in the format: {id, name, e-mail, country}. Now, as we know, Hadoop performance degrades when we use lots of small files.
+So, how will you solve this problem where we want to create a single Hive table for lots of small files without degrading the performance of the system?
+
+normal text file e cannot append the data in hive.
+Sequence file may append the data.
 
 
 
