@@ -1,4 +1,4 @@
-Download vechile sales data -> https://github.com/shashank-mishra219/Hive-Class/blob/main/sales_order_data.cs
+Download vechile sales data -> https://github.com/shashank-mishra219/Hive-Class/blob/main/sales_order_data.csv
 Sol:
 [cloudera@quickstart hivepractical]$ head sales_data_csv.csv
 ORDERNUMBER,QUANTITYORDERED,PRICEEACH,ORDERLINENUMBER,SALES,STATUS,QTR_ID,MONTH_ID,YEAR_ID,PRODUCTLINE,MSRP,PRODUCTCODE,PHONE,CITY,STATE,POSTALCODE,COUNTRY,TERRITORY,CONTACTLASTNAME,CONTACTFIRSTNAME,DEALSIZE
