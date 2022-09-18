@@ -23,3 +23,63 @@ ORDERNUMBER,QUANTITYORDERED,PRICEEACH,ORDERLINENUMBER,SALES,STATUS,QTR_ID,MONTH_
 10397,34,62.24,1,2116.16,Shipped,1,3,2005,Ships,54,S72_3212,61.77.6555,Toulouse,,31000,France,EMEA,Roulet,Annette,Small
 10414,47,65.52,9,3079.44,On Hold,2,5,2005,Ships,54,S72_3212,6175559555,Boston,MA,51003,USA,NA,Yoshido,Juri,Medium
 [cloudera@quickstart hivepractical]$
+
+
+
+Store raw data into hdfs location
+sol:
+[cloudera@quickstart hivepractical]$ hdfs dfs -cat /user/hive/warehouse/big_data.db/sales_order_data_csv_v1/sales_data_csv.csv | head
+ORDERNUMBER,QUANTITYORDERED,PRICEEACH,ORDERLINENUMBER,SALES,STATUS,QTR_ID,MONTH_ID,YEAR_ID,PRODUCTLINE,MSRP,PRODUCTCODE,PHONE,CITY,STATE,POSTALCODE,COUNTRY,TERRITORY,CONTACTLASTNAME,CONTACTFIRSTNAME,DEALSIZE
+10107,30,95.7,2,2871,Shipped,1,2,2003,Motorcycles,95,S10_1678,2125557818,NYC,NY,10022,USA,NA,Yu,Kwai,Small
+10121,34,81.35,5,2765.9,Shipped,2,5,2003,Motorcycles,95,S10_1678,26.47.1555,Reims,,51100,France,EMEA,Henriot,Paul,Small
+10134,41,94.74,2,3884.34,Shipped,3,7,2003,Motorcycles,95,S10_1678,+33 1 46 62 7555,Paris,,75508,France,EMEA,Da Cunha,Daniel,Medium
+10145,45,83.26,6,3746.7,Shipped,3,8,2003,Motorcycles,95,S10_1678,6265557265,Pasadena,CA,90003,USA,NA,Young,Julie,Medium
+10159,49,100,14,5205.27,Shipped,4,10,2003,Motorcycles,95,S10_1678,6505551386,San Francisco,CA,,USA,NA,Brown,Julie,Medium
+10168,36,96.66,1,3479.76,Shipped,4,10,2003,Motorcycles,95,S10_1678,6505556809,Burlingame,CA,94217,USA,NA,Hirano,Juri,Medium
+10180,29,86.13,9,2497.77,Shipped,4,11,2003,Motorcycles,95,S10_1678,20.16.1555,Lille,,59000,France,EMEA,Rance,Martine,Small
+10188,48,100,1,5512.32,Shipped,4,11,2003,Motorcycles,95,S10_1678,+47 2267 3215,Bergen,,N 5804,Norway,EMEA,Oeztan,Veysel,Medium
+10201,22,98.57,2,2168.54,Shipped,4,12,2003,Motorcycles,95,S10_1678,6505555787,San Francisco,CA,,USA,NA,Murphy,Julie,Small
+cat: Unable to write to output stream.
+[cloudera@quickstart hivepractical]$ hdfs dfs -cat /user/hive/warehouse/big_data.db/sales_order_data_csv_v1/sales_data_csv.csv | tail
+10293,32,60.06,1,1921.92,Shipped,3,9,2004,Ships,54,S72_3212,011-4988555,Torino,,10100,Italy,EMEA,Accorti,Paolo,Small
+10306,35,59.51,6,2082.85,Shipped,4,10,2004,Ships,54,S72_3212,(171) 555-1555,Manchester,,EC2 5NT,UK,EMEA,Ashworth,Victoria,Small
+10315,40,55.69,5,2227.6,Shipped,4,10,2004,Ships,54,S72_3212,40.67.8555,Nantes,,44000,France,EMEA,Labrune,Janine,Small
+10327,37,86.74,4,3209.38,Resolved,4,11,2004,Ships,54,S72_3212,31 12 3555,Kobenhavn,,1734,Denmark,EMEA,Petersen,Jytte,Medium
+10337,42,97.16,5,4080.72,Shipped,4,11,2004,Ships,54,S72_3212,2125558493,NYC,NY,10022,USA,NA,Hernandez,Maria,Medium
+10350,20,100,15,2244.4,Shipped,4,12,2004,Ships,54,S72_3212,(91) 555 94 44,Madrid,,28034,Spain,EMEA,Freyre,Diego,Small
+10373,29,100,1,3978.51,Shipped,1,1,2005,Ships,54,S72_3212,981-443655,Oulu,,90110,Finland,EMEA,Koskitalo,Pirkko,Medium
+10386,43,100,4,5417.57,Resolved,1,3,2005,Ships,54,S72_3212,(91) 555 94 44,Madrid,,28034,Spain,EMEA,Freyre,Diego,Medium
+10397,34,62.24,1,2116.16,Shipped,1,3,2005,Ships,54,S72_3212,61.77.6555,Toulouse,,31000,France,EMEA,Roulet,Annette,Small
+10414,47,65.52,9,3079.44,On Hold,2,5,2005,Ships,54,S72_3212,6175559555,Boston,MA,51003,USA,NA,Yoshido,Juri,Medium
+
+
+
+Create a internal hive table "sales_order_csv" which will store csv data sales_order_csv .. make sure to skip header row while creating table
+sol:
+
+hive> describe sales_order_data_csv_v1;
+OK
+ordernumber             int
+quantityordered         int
+priceeach               float
+orderlinenumber         int
+sales                   float
+status                  string
+qtr_id                  int
+month_id                int
+year_id                 int
+productline             string
+msrp                    int
+productcode             string
+phone                   string
+city                    string
+state                   string
+postalcode              string
+country                 string
+territory               string
+contactlastname         string
+contactfirstname        string
+dealsize                string
+
+
+
