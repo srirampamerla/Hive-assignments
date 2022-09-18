@@ -1,4 +1,4 @@
-Download vechile sales data -> https://github.com/shashank-mishra219/Hive-Class/blob/main/sales_order_data.csv
+##Download vechile sales data -> https://github.com/shashank-mishra219/Hive-Class/blob/main/sales_order_data.csv
 Sol:
 [cloudera@quickstart hivepractical]$ head sales_data_csv.csv
 ORDERNUMBER,QUANTITYORDERED,PRICEEACH,ORDERLINENUMBER,SALES,STATUS,QTR_ID,MONTH_ID,YEAR_ID,PRODUCTLINE,MSRP,PRODUCTCODE,PHONE,CITY,STATE,POSTALCODE,COUNTRY,TERRITORY,CONTACTLASTNAME,CONTACTFIRSTNAME,DEALSIZE
@@ -26,7 +26,7 @@ ORDERNUMBER,QUANTITYORDERED,PRICEEACH,ORDERLINENUMBER,SALES,STATUS,QTR_ID,MONTH_
 
 
 
-Store raw data into hdfs location
+###Store raw data into hdfs location
 sol:
 [cloudera@quickstart hivepractical]$ hdfs dfs -cat /user/hive/warehouse/big_data.db/sales_order_data_csv_v1/sales_data_csv.csv | head
 ORDERNUMBER,QUANTITYORDERED,PRICEEACH,ORDERLINENUMBER,SALES,STATUS,QTR_ID,MONTH_ID,YEAR_ID,PRODUCTLINE,MSRP,PRODUCTCODE,PHONE,CITY,STATE,POSTALCODE,COUNTRY,TERRITORY,CONTACTLASTNAME,CONTACTFIRSTNAME,DEALSIZE
@@ -54,7 +54,7 @@ cat: Unable to write to output stream.
 
 
 
-Create a internal hive table "sales_order_csv" which will store csv data sales_order_csv .. make sure to skip header row while creating table
+###Create a internal hive table "sales_order_csv" which will store csv data sales_order_csv .. make sure to skip header row while creating table
 sol:
 create table sales_order_data_csv_v1
 (
@@ -109,7 +109,7 @@ contactlastname         string
 contactfirstname        string
 dealsize                string
 
-Load data from hdfs path into "sales_order_csv" 
+###Load data from hdfs path into "sales_order_csv" 
 Sol
 load data local inpath 'file:///Downloads/hivepractical/sales_data_csv.csv' into table sales_order_data_csv_v1;
 hive> select * from sales_order_data_csv_v1 limit 10;
@@ -129,7 +129,7 @@ Time taken: 0.488 seconds, Fetched: 10 row(s)
 
 
 
- Create an internal hive table which will store data in ORC format "sales_order_orc"
+ ###Create an internal hive table which will store data in ORC format "sales_order_orc"
  create table sales_order_data_orc
 (
 ORDERNUMBER int,
@@ -156,7 +156,7 @@ DEALSIZE string
 )
 stored as orc;
 
-Load data from "sales_order_csv" into "sales_order_orc"
+###Load data from "sales_order_csv" into "sales_order_orc"
 
 from sales_order_data_csv_v1 insert overwrite table sales_order_data_orc select *;
 
@@ -172,7 +172,7 @@ Time taken: 0.163 seconds, Fetched: 5 row(s)
 
 
 
-Perform below menioned queries on "sales_order_orc" table :
+###Perform below menioned queries on "sales_order_orc" table :
 
 a. Calculatye total sales per year
 hive> set hive.cli.print.header=true;
@@ -316,8 +316,8 @@ total_sales     qtr_id
 Time taken: 50.501 seconds, Fetched: 1 row(s)
 
 
-In which country sales was maximum and in which country sales was minimum
- select country,max(sales) as max_sales from sales_order_data_orc group by country order by max_sales  limit 1;
+e.In which country sales was maximum and in which country sales was minimum
+select country,max(sales) as max_sales from sales_order_data_orc group by country order by max_sales  limit 1;
  MapReduce Jobs Launched:
 Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.28 sec   HDFS Read: 36875 HDFS Write: 640 SUCCESS
 Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 2.12 sec   HDFS Read: 5844 HDFS Write: 12 SUCCESS
@@ -338,8 +338,7 @@ France  482.13
 Time taken: 39.276 seconds, Fetched: 1 row(s)
 
 
-
-Calculate quartelry sales for each city
+f.Calculate quartelry sales for each city
 select city,sum(sales) as qtrly_sales,qtr_id from sales_order_data_orc group by city,qtr_id order by qtr_id;
 MapReduce Jobs Launched:
 Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.34 sec   HDFS Read: 38384 HDFS Write: 6528 SUCCESS
