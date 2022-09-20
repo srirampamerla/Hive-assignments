@@ -52,3 +52,222 @@ Sequence file may append the data.
 
 
 
+Hive Practical questions:
+
+Hive Join operations
+
+Create a  table named CUSTOMERS(ID | NAME | AGE | ADDRESS   | SALARY)
+Create a Second  table ORDER(OID | DATE | CUSTOMER_ID | AMOUNT
+)
+
+Now perform different joins operations on top of these tables
+(Inner JOIN, LEFT OUTER JOIN ,RIGHT OUTER JOIN ,FULL OUTER JOIN)
+
+
+
+hive> create table customers(
+    > id int,
+    > name string,
+    > age int,
+    > address string,
+    > salary float
+    > )
+    > row format serde 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+    > with serdeproperties (
+    > "seperatorChar" = ",",
+    > "quoteChar" = "\'",
+    > "escapeChar" = "\\"
+    > )
+    > stored as textfile;
+OK
+Time taken: 0.115 seconds
+hive> describe customers;
+OK
+id                      string                  from deserializer
+name                    string                  from deserializer
+age                     string                  from deserializer
+address                 string                  from deserializer
+salary                  string                  from deserializer
+
+hive> load data local inpath '/home/cloudera/Downloads/hivepractical/assignments/customer.csv' into table customers;
+Loading data to table assignment.customers
+Table assignment.customers stats: [numFiles=1, totalSize=176]
+OK
+Time taken: 0.346 seconds
+hive> select * from customers;
+OK
+1       RAM     21      JNROAD,UP       10000
+2       KUMAR   22      HIGHRAD,AP      100000
+3       RAJ     20      MAINROAD,MP     1000
+4       JOHN    29      OUTERRINGROAD,TS        20000
+5       KO      27      JNROAD,UP       15000
+10      LO      30      NOIDA,DELHI     20000
+Time taken: 0.07 seconds, Fetched: 6 row(s)
+
+hive> describe orders;
+OK
+id                      int
+date                    string
+c_id                    int
+amount                  float
+Time taken: 0.081 seconds, Fetched: 4 row(s)
+hive> load data local inpath '/home/cloudera/Downloads/hivepractical/assignments/orders.csv' overwrite into table orders;
+Loading data to table assignment.orders
+Table assignment.orders stats: [numFiles=1, numRows=0, totalSize=96, rawDataSize=0]
+OK
+Time taken: 0.399 seconds
+hive> select * from orders;
+OK
+1001    12/12/2001      1       20000.0
+1002    12/08/2014      2       30000.0
+1003    11/03/2021      3       40000.0
+1004    11/09/2022      7       50000.0
+Time taken: 0.069 seconds, Fetched: 4 row(s)
+
+hive> create table buck_orders(
+    > id int,
+    > date string,
+    > c_id int,
+    > amount float
+    > )
+    > clustered by (c_id)
+    > sorted by (c_id)
+    > into 2 buckets;
+OK
+Time taken: 0.119 seconds
+hive> describe formatted buck_orders;
+# Storage Information
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+Compressed:             No
+Num Buckets:            2
+Bucket Columns:         [c_id]
+Sort Columns:           [Order(col:c_id, order:1)]
+Storage Desc Params:
+        serialization.format    1
+Time taken: 0.085 seconds, Fetched: 35 row(s)
+
+hive> create table buck_customers(
+    > id int,
+    > name string,
+    > age int,
+    > address string,
+    > salary float
+    > )
+    > clustered by (id)
+    > sorted by (id)
+    > into 2 buckets;
+OK
+Time taken: 0.116 seconds
+hive> describe formatted buck_customers;
+# Storage Information
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+Compressed:             No
+Num Buckets:            2
+Bucket Columns:         [id]
+Sort Columns:           [Order(col:id, order:1)]
+Storage Desc Params:
+        serialization.format    1
+Time taken: 0.085 seconds, Fetched: 31 row(s)
+
+
+
+inner join: for(map join)
+hive> select * from customers c inner join orders o on c.id = o.c_id;
+Hadoop job information for Stage-3: number of mappers: 1; number of reducers: 0
+2022-09-20 00:06:29,555 Stage-3 map = 0%,  reduce = 0%
+2022-09-20 00:06:39,232 Stage-3 map = 100%,  reduce = 0%, Cumulative CPU 3.81 sec
+MapReduce Total cumulative CPU time: 3 seconds 810 msec
+Ended Job = job_1663640784885_0005
+MapReduce Jobs Launched:
+Stage-Stage-3: Map: 1   Cumulative CPU: 3.81 sec   HDFS Read: 8091 HDFS Write: 158 SUCCESS
+Total MapReduce CPU Time Spent: 3 seconds 810 msec
+OK
+1       RAM     21      JNROAD,UP       10000   1001    12/12/2001      1       20000.0
+2       KUMAR   22      HIGHRAD,AP      100000  1002    12/08/2014      2       30000.0
+3       RAJ     20      MAINROAD,MP     1000    1003    11/03/2021      3       40000.0
+Time taken: 27.411 seconds, Fetched: 3 row(s)
+
+Left outer join(for bucket join)
+hive> set hive.optimize.bucketmapjoin=true;
+hive> select * from customers c left outer join orders o on c.id = o.c_id;
+Query ID = cloudera_20220920001111_d3eca109-c80f-45f6-ac81-b93b26fa7403
+Total jobs = 1
+Execution log at: /tmp/cloudera/cloudera_20220920001111_d3eca109-c80f-45f6-ac81-b93b26fa7403.log
+2022-09-20 12:11:14     Starting to launch local task to process map join;      maximum memory = 932184064
+2022-09-20 12:11:16     Dump the side-table for tag: 1 with group count: 4 into file: file:/tmp/cloudera/a2e5449f-9d29-48d2-87b9-90cc1fda5ab5/hive_2022-09-20_00-11-07_909_4314964738024416816-1/-local-10003/HashTable-Stage-3/MapJoin-mapfile21--.hashtable
+2022-09-20 12:11:16     Uploaded 1 File to: file:/tmp/cloudera/a2e5449f-9d29-48d2-87b9-90cc1fda5ab5/hive_2022-09-20_00-11-07_909_4314964738024416816-1/-local-10003/HashTable-Stage-3/MapJoin-mapfile21--.hashtable (440 bytes)
+2022-09-20 12:11:16     End of local task; Time Taken: 1.752 sec.
+Execution completed successfully
+MapredLocal task succeeded
+Launching Job 1 out of 1
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_1663640784885_0006, Tracking URL = http://quickstart.cloudera:8088/proxy/application_1663640784885_0006/
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -kill job_1663640784885_0006
+Hadoop job information for Stage-3: number of mappers: 1; number of reducers: 0
+2022-09-20 00:11:24,244 Stage-3 map = 0%,  reduce = 0%
+2022-09-20 00:11:31,740 Stage-3 map = 100%,  reduce = 0%, Cumulative CPU 2.62 sec
+MapReduce Total cumulative CPU time: 2 seconds 620 msec
+Ended Job = job_1663640784885_0006
+MapReduce Jobs Launched:
+Stage-Stage-3: Map: 1   Cumulative CPU: 2.62 sec   HDFS Read: 7962 HDFS Write: 278 SUCCESS
+Total MapReduce CPU Time Spent: 2 seconds 620 msec
+OK
+1       RAM     21      JNROAD,UP       10000   1001    12/12/2001      1       20000.0
+2       KUMAR   22      HIGHRAD,AP      100000  1002    12/08/2014      2       30000.0
+3       RAJ     20      MAINROAD,MP     1000    1003    11/03/2021      3       40000.0
+4       JOHN    29      OUTERRINGROAD,TS        20000   NULL    NULL    NULL    NULL
+5       KO      27      JNROAD,UP       15000   NULL    NULL    NULL    NULL
+10      LO      30      NOIDA,DELHI     20000   NULL    NULL    NULL    NULL
+
+
+
+For right outer join:
+select * from customers c right outer join orders o on c.id = o.c_id;
+Hadoop job information for Stage-3: number of mappers: 1; number of reducers: 0
+2022-09-20 00:13:25,107 Stage-3 map = 0%,  reduce = 0%
+2022-09-20 00:13:32,456 Stage-3 map = 100%,  reduce = 0%, Cumulative CPU 2.48 sec
+MapReduce Total cumulative CPU time: 2 seconds 480 msec
+Ended Job = job_1663640784885_0007
+MapReduce Jobs Launched:
+Stage-Stage-3: Map: 1   Cumulative CPU: 2.48 sec   HDFS Read: 7882 HDFS Write: 199 SUCCESS
+Total MapReduce CPU Time Spent: 2 seconds 480 msec
+OK
+1       RAM     21      JNROAD,UP       10000   1001    12/12/2001      1       20000.0
+2       KUMAR   22      HIGHRAD,AP      100000  1002    12/08/2014      2       30000.0
+3       RAJ     20      MAINROAD,MP     1000    1003    11/03/2021      3       40000.0
+NULL    NULL    NULL    NULL    NULL    1004    11/09/2022      7       50000.0
+Time taken: 22.502 seconds, Fetched: 4 row(s)
+
+Full outer join:
+
+hive> set hive.enforce.sortmergebucketmapjoin=false;
+hive> set hive.auto.convert.sortmerge.join=true;
+hive> set hive.optimize.bucketmapjoin = true;
+hive> set hive.optimize.bucketmapjoin.sortedmerge = true;
+hive> SET hive.auto.convert.join=false;
+hive> select * from customers c full outer join orders o on c.id = o.c_id;
+
+Hadoop job information for Stage-1: number of mappers: 2; number of reducers: 1
+2022-09-20 00:16:46,001 Stage-1 map = 0%,  reduce = 0%
+2022-09-20 00:17:04,716 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 18.11 sec
+2022-09-20 00:17:13,090 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 19.85 sec
+MapReduce Total cumulative CPU time: 19 seconds 850 msec
+Ended Job = job_1663640784885_0008
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 2  Reduce: 1   Cumulative CPU: 19.85 sec   HDFS Read: 16642 HDFS Write: 319 SUCCESS
+Total MapReduce CPU Time Spent: 19 seconds 850 msec
+OK
+1       RAM     21      JNROAD,UP       10000   1001    12/12/2001      1       20000.0
+2       KUMAR   22      HIGHRAD,AP      100000  1002    12/08/2014      2       30000.0
+3       RAJ     20      MAINROAD,MP     1000    1003    11/03/2021      3       40000.0
+4       JOHN    29      OUTERRINGROAD,TS        20000   NULL    NULL    NULL    NULL
+5       KO      27      JNROAD,UP       15000   NULL    NULL    NULL    NULL
+NULL    NULL    NULL    NULL    NULL    1004    11/09/2022      7       50000.0
+10      LO      30      NOIDA,DELHI     20000   NULL    NULL    NULL    NULL
+
+
+
