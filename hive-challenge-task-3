@@ -271,3 +271,180 @@ NULL    NULL    NULL    NULL    NULL    1004    11/09/2022      7       50000.0
 
 
 
+
+
+
+
+Download a data from the given location - 
+https://archive.ics.uci.edu/ml/machine-learning-databases/00360/
+
+Create a hive table as per given schema in your dataset
+create table hive_pract2(
+date string,
+time string,
+co_gt float,
+pt08_s1_co int,
+nmhc_gt float,
+c6h6_gt int,
+pt08_s2_nmhc int,
+nox_gt int,
+pt08_s3_nox int,
+no2_gt int,
+pt08_s4_no2 int,
+pt08_s5_o3 int,
+t float,
+rh float,
+ah float
+)
+row format delimited
+field terminated by ','
+tblproperties("skip.header.line.count"="1");
+
+ describe hive_pract2;
+OK
+date                    string
+time                    string
+co_gt                   float
+pt08_s1_co              int
+nmhc_gt                 float
+c6h6_gt                 int
+pt08_s2_nmhc            int
+nox_gt                  int
+pt08_s3_nox             int
+no2_gt                  int
+pt08_s4_no2             int
+pt08_s5_o3              int
+t                       float
+rh                      float
+ah                      float
+Time taken: 0.136 seconds, Fetched: 15 row(s)
+hive>
+
+
+
+
+
+try to place a data into table location
+load data local inpath '/Downloads/hivepractical/assignments/data4.csv' overwrite into table hive_pract2;
+
+Perform a select operation .
+hive> select * from hive_pract2 limit 10;
+OK
+hive_pract2.date        hive_pract2.time        hive_pract2.co_gt       hive_pract2.pt08_s1_co  hive_pract2.nmhc_gt     hive_pract2.c6h6_gt     hive_pract2.pt08_s2_nmhc        hive_pract2.nox_gt   hive_pract2.pt08_s3_nox hive_pract2.no2_gt      hive_pract2.pt08_s4_no2 hive_pract2.pt08_s5_o3  hive_pract2.t   hive_pract2.rh  hive_pract2.ah
+10-03-2004      18:00:00        2.6     1360    150.0   11      1046    166     1056    113     1692    1268    13.6    48.9    0.7578
+10-03-2004      19:00:00        2.0     1292    112.0   9       955     103     1174    92      1559    972     13.3    47.7    0.7255
+10-03-2004      20:00:00        2.2     1402    88.0    9       939     131     1140    114     1555    1074    11.9    54.0    0.7502
+10-03-2004      21:00:00        2.2     1376    80.0    9       948     172     1092    122     1584    1203    11.0    60.0    0.7867
+10-03-2004      22:00:00        1.6     1272    51.0    6       836     131     1205    116     1490    1110    11.2    59.6    0.7888
+10-03-2004      23:00:00        1.2     1197    38.0    4       750     89      1337    96      1393    949     11.2    59.2    0.7848
+11-03-2004      00:00:00        1.2     1185    31.0    3       690     62      1462    77      1333    733     11.3    56.8    0.7603
+11-03-2004      01:00:00        1.0     1136    31.0    3       672     62      1453    76      1333    730     10.7    60.0    0.7702
+11-03-2004      02:00:00        0.9     1094    24.0    2       609     45      1579    60      1276    620     10.7    59.7    0.7648
+11-03-2004      03:00:00        0.6     1010    19.0    1       561     -200    1705    -200    1235    501     10.3    60.2    0.7517
+Time taken: 0.082 seconds, Fetched: 10 row(s)
+
+Perform group by operation .
+ select date,sum(c6h6_gt) as total_c6h6 from hive_pract2 group by (date) limit 5;
+ MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 3.18 sec   HDFS Read: 756398 HDFS Write: 5875 SUCCESS
+Total MapReduce CPU Time Spent: 3 seconds 180 msec
+OK
+01-01-2005      161
+01-02-2005      276
+01-03-2005      62
+01-04-2004      -358
+01-04-2005      72
+..........
+
+Perform filter operation kinds of filter examples .
+
+ select c6h6_gt from hive_pract2 where date = '31-08-2004';
+OK
+5
+4
+2
+2
+2
+4
+6
+
+show and example of regex operation
+hive> select regexp_replace('in!eu%ro-n+','[^a-z]','');
+OK
+ineuron
+
+alter table operation
+
+hive> create table table_name(
+    > id int,name string,
+    > city string)
+    > stored as textfile;
+OK
+Time taken: 0.366 seconds
+hive> alter table table_name rename to sample;
+OK
+Time taken: 0.186 seconds
+hive> describe sample;
+OK
+id                      int
+name                    string
+city                    string
+Time taken: 0.117 seconds, Fetched: 3 row(s)
+
+drop table operation
+hive> drop table sample;
+OK
+Time taken: 0.336 seconds
+hive> describe sample;
+FAILED: SemanticException [Error 10001]: Table not found sample
+hive>
+
+
+
+order by operation . 
+select date,sum(c6h6_gt) as total_c6h6 from hive_pract2 group by (date) order by total_c6h6;
+MapReduce Jobs Launched:
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 4.86 sec   HDFS Read: 755486 HDFS Write: 12032 SUCCESS
+Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 3.42 sec   HDFS Read: 16962 HDFS Write: 5875 SUCCESS
+Total MapReduce CPU Time Spent: 8 seconds 280 msec
+OK
+10-02-2005      -4800
+20-06-2004      -4800
+16-12-2004      -4800
+15-12-2004      -4800
+27-08-2004      -4800
+09-02-2005      -4800
+03-01-2005      -4800
+04-01-2005      -4800
+09-04-2004      -4592
+11-02-2005      -4159
+17-12-2004      -3958
+26-08-2004      -3581
+08-09-2004      -3267
+19-06-2004      -1909
+26-05-2004      -1557
+28-01-2005      -1339
+08-02-2005      -1322
+
+where clause operations you have to perform .
+select c6h6_gt from hive_pract2 where date = '31-08-2004';
+5
+4
+2
+2
+2
+4
+6
+21
+26
+16
+15
+16
+14
+12
+
+sorting operation you have to perform .
+> select c6h6_gt from hive_pract2 sort by c6h6_gt;
+
+
+
