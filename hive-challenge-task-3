@@ -445,6 +445,90 @@ select c6h6_gt from hive_pract2 where date = '31-08-2004';
 
 sorting operation you have to perform .
 > select c6h6_gt from hive_pract2 sort by c6h6_gt;
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 8.96 sec   HDFS Read: 753983 HDFS Write: 191 SUCCESS
+Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 5.6 sec   HDFS Read: 4603 HDFS Write: 25 SUCCESS
+Total MapReduce CPU Time Spent: 14 seconds 560 msec
+OK
+-200
+-200
+-200
+-200
+-200
+
+
+
+distinct operation you have to perform .
+select distinct(c6h6_gt) from hive_pract2 limit 10;
+
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 3.85 sec   HDFS Read: 755872 HDFS Write: 23 SUCCESS
+Total MapReduce CPU Time Spent: 3 seconds 850 msec
+OK
+-200
+0
+1
+2
+3
+4
+5
+6
+7
+8
+Time taken: 30.008 seconds, Fetched: 10 row(s)
+
+
+
+
+like an operation you have to perform .
+ select date from hive_pract2 where date like '24%' limit 10;
+OK
+24-03-2004
+24-03-2004
+24-03-2004
+24-03-2004
+24-03-2004
+24-03-2004
+24-03-2004
+24-03-2004
+24-03-2004
+24-03-2004
+Time taken: 0.097 seconds, Fetched: 10 row(s)
+
+
+union operation you have to perform . 
+hive> select c6h6_gt from hive_pract2
+    > union all
+    > select c6h6_gt from hive_pract2 limit 10;
+2
+2
+2
+1
+1
+1
+2
+4
+3
+5
+5
+3
+4
+5
+6
+6
+
+18 . table view operation you have to perform .
+Time taken: 50.435 seconds, Fetched: 9367 row(s)
+hive> Create view order_view as select * from buck_orders;
+OK
+Time taken: 0.605 seconds
+hive> select * from order_view;
+OK
+1001    12/12/2001      1       20000.0
+1002    12/08/2014      2       30000.0
+1003    11/03/2021      3       40000.0
+1004    11/09/2022      7       50000.0
+Time taken: 0.111 seconds, Fetched: 4 row(s)
+hive>
+
 
 
 
