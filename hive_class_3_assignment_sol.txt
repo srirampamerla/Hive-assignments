@@ -209,6 +209,8 @@ Time taken: 27.656 seconds, Fetched: 3 row(s)
 
 b. Find a product for which maximum orders were placed
 hive> select max(quantityordered) as max_orders,productline from sales_order_data_orc group by productline limit 1;
+(If we use this query it will take some extra time when ompared to above----select quantityordered,productline from sales_order_data_orc s1 where s1.quantityordered IN (select max(s2.quantityordered) from sales_order_data_orc s2);
+
 Query ID = cloudera_20220917211212_09d27f51-981f-4305-b60b-95bf25ea8ef5
 Total jobs = 1
 Launching Job 1 out of 1
@@ -272,6 +274,7 @@ total_sales     qtr_id
 
 d. In which quarter sales was minimum
 hive> select sum(sales) as total_sales,qtr_id from sales_order_data_orc group by qtr_id order by total_sales limit 1;
+(If we use this query it will take some extra time when ompared to above----select sales,qtr_id from sales_order_data_orc s1 where s1.sales IN ( select min(sales) from sales_order_data_orc s2);)
 Query ID = cloudera_20220917215252_69a6dd6c-8159-41e9-b850-dd01b9a3ea87
 Total jobs = 2
 Launching Job 1 out of 2
@@ -318,6 +321,7 @@ Time taken: 50.501 seconds, Fetched: 1 row(s)
 
 e.In which country sales was maximum and in which country sales was minimum
 select country,max(sales) as max_sales from sales_order_data_orc group by country order by max_sales  limit 1;
+(select country,sales from sales_order_data_orc s1 where s1.sales IN (select max(sales) from sales_order_data_orc s2);
  MapReduce Jobs Launched:
 Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.28 sec   HDFS Read: 36875 HDFS Write: 640 SUCCESS
 Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 2.12 sec   HDFS Read: 5844 HDFS Write: 12 SUCCESS
@@ -328,6 +332,7 @@ USA     14082.8
 Time taken: 47.364 seconds, Fetched: 1 row(s)
 
 select country,min(sales) as min_sales from sales_order_data_orc group by country order by min_sales limit 1;
+(select country,sales from sales_order_data_orc s1 where s1.sales IN (select min(sales) from sales_order_data_orc s2);
 MapReduce Jobs Launched:
 Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 2.36 sec   HDFS Read: 36875 HDFS Write: 640 SUCCESS
 Stage-Stage-2: Map: 1  Reduce: 1   Cumulative CPU: 2.42 sec   HDFS Read: 5695 HDFS Write: 14 SUCCESS
